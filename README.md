@@ -4,8 +4,8 @@
 
 This repository demonstrates how to use **Envoy** as a stable, vendor-neutral **control plane** for LLM traffic—handling authentication, coarse rate limiting, routing, and observability—while delegating all LLM-specific intelligence to a **swappable policy engine** via `ext_authz`.
 
-## Design principle:  
-> **If you can replace this with plain Envoy + a tiny auth filter and nothing breaks (besides policy), the architecture is correct.**
+### Design principle:  
+**If you can replace this with plain Envoy + a tiny auth filter and nothing breaks (besides policy), the architecture is correct.**
 
 ## Motivation
 
