@@ -7,8 +7,6 @@ This repository demonstrates how to use **Envoy** as a stable, vendor-neutral **
 > Design principle:  
 > **If you can replace this with plain Envoy + a tiny auth filter and nothing breaks (besides policy), the architecture is correct.**
 
----
-
 ## Motivation
 
 Most “LLM gateways” collapse too many responsibilities into one service:
@@ -32,8 +30,6 @@ The result is an LLM ingress architecture that is:
 - vendor-neutral
 - and easy to reason about
 
----
-
 ## What this repo is
 
 - A **reference implementation** of Envoy as an OpenAI-compatible LLM ingress
@@ -46,8 +42,6 @@ The result is an LLM ingress architecture that is:
 
 This is intentionally **infrastructure, not product**.
 
----
-
 ## What this repo is not
 
 - Not an agent framework
@@ -56,8 +50,6 @@ This is intentionally **infrastructure, not product**.
 - Not a full LLM “gateway” product
 
 Those concerns belong elsewhere, behind stable interfaces.
-
----
 
 ## Architecture overview
 
@@ -90,8 +82,6 @@ It only enforces the decision returned by the policy engine.
 
 That boundary is what makes the system replaceable and safe.
 
----
-
 ## OpenAI compatibility (what that means here)
 
 Envoy is **not** re-implementing the OpenAI API.
@@ -103,8 +93,6 @@ Envoy is **not** re-implementing the OpenAI API.
 - Forwards requests after policy approval
 
 Any schema interpretation or provider-specific behavior belongs **downstream**, not in the control plane.
-
----
 
 ## Quickstart
 
@@ -129,8 +117,6 @@ bash demo/curl/chat_stream.sh
 
 You should see a streamed response pass through Envoy unchanged.
 
----
-
 ## Repo layout
 
 ```
@@ -148,8 +134,6 @@ demo/
 The stub services exist solely to make the repo runnable.
 They are not intended as production implementations.
 
----
-
 ## Swapping in a real policy engine
 
 To replace the stub policy engine with a real implementation:
@@ -166,8 +150,6 @@ To replace the stub policy engine with a real implementation:
 
 That immutability is the point.
 
----
-
 ## Design constraints (intentional)
 
 * Envoy does **not** inspect request bodies
@@ -176,8 +158,6 @@ That immutability is the point.
 * Failure modes are explicit (fail-closed by default)
 
 These constraints keep the control plane predictable and auditable.
-
----
 
 ## Who this is for
 
