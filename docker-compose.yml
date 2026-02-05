@@ -1,0 +1,47 @@
+services:
+  envoy:
+    image: envoyproxy/envoy:v1.36.4
+    command: ["-c", "/etc/envoy/envoy.yaml", "--log-level", "info"]
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+    depends_on:
+      policy-stub:
+        condition: service_healthy
+      mock-upstream:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -ec 'exec 3<>/dev/tcp/127.0.0.1/9901'"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+      start_period: 5s
+
+  policy-stub:
+    build: ./stubs/policy-engine-stub
+    environment:
+      - LISTEN_ADDR=0.0.0.0:9002
+      - REQUIRED_API_KEY=demo-key
+      - POLICY_MODE=allow
+    ports:
+      - "9002:9002"
+    healthcheck:
+      test: ["CMD", "/policy-stub", "--healthcheck"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+      start_period: 2s
+
+  mock-upstream:
+    build: ./stubs/mock-upstream
+    environment:
+      - LISTEN_ADDR=0.0.0.0:9000
+    ports:
+      - "9000:9000"
+    healthcheck:
+      test: ["CMD", "/mock-upstream", "--healthcheck"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+      start_period: 2s
