@@ -11,8 +11,8 @@ import (
 )
 
 type Config struct {
-  Project		    string        `envDefault:"DEFAULTPROJECTNsAME"`
-  RootDir       Path        `envDefault:"../.."`
+  Project		    string        `envDefault:"DefaultProject"`
+  RootDir       Path          `envDefault:"../.."`
 
   ReadyTimeout 	time.Duration `envDefault:"120s"`
   PollEvery     time.Duration `envDefault:"500ms"`
@@ -39,24 +39,24 @@ func logOnSet(key string, v any, isDefault bool) {
   fmt.Printf("env %s=%v (isDefault=%v)\n", key, v, isDefault)
 }
 
-func debugEnvironment() map[string]string {
-  return map[string]string{
-    "HARNESS_PROJECT":        "TEST_PROJECT_NAME",
-    "HARNESS_ROOT_DIR":       "../..",
+// func debugEnvironment() map[string]string {
+//   return map[string]string{
+//     "HARNESS_PROJECT":        "TEST_PROJECT_NAME",
+//     "HARNESS_ROOT_DIR":       "../..",
 
-    "HARNESS_READY_TIMEOUT":  "170s",
-    "HARNESS_POLL_EVERY":     "600ms",
+//     "HARNESS_READY_TIMEOUT":  "170s",
+//     "HARNESS_POLL_EVERY":     "600ms",
 
-    // "HARNESS_DOWN_VOLUMES":    "false",
-  }
-}
+//     // "HARNESS_DOWN_VOLUMES":    "false",
+//   }
+// }
 
 func configOptions() env.Options {
   return env.Options{
     Prefix:                 "HARNESS_",
     UseFieldNameByDefault:  true,
     OnSet:                  logOnSet,
-    Environment:            debugEnvironment(),
+    // Environment:            debugEnvironment(),
 
     FuncMap: map[reflect.Type]env.ParserFunc{
 			reflect.TypeFor[Path](): parsePath,
