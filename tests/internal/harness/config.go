@@ -55,7 +55,8 @@ func configOptions() env.Options {
 type Path string
 
 func (p Path) Join(elem ...string) Path {
-  return Path(filepath.Join(string(p), elem...))
+	parts := append([]string{string(p)}, elem...)
+	return Path(filepath.Join(parts...))
 }
 
 func parsePath(v string) (any, error) {
