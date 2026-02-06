@@ -17,7 +17,6 @@ func TestMain(m *testing.M) {
 	// - harness.Down() (unless KEEP_STACK_UP)
 
 	code := m.Run()
-
 	fmt.Println("[integration] TestMain finished")
 	os.Exit(code)
 }
