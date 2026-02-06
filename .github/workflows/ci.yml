@@ -30,24 +30,21 @@ jobs:
 
       - name: Debug paths
         run: |
-          echo "workspace = $GITHUB_WORKSPACE"
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
           pwd
 
       - name: Run CI
         env:
           # Harness interface (backend-agnostic)
-          HARNESS_ROOT_DIR: ${{ github.workspace }}
           HARNESS_PROJECT: envoy-llm-cp-it-${{ github.run_id }}
+          HARNESS_ROOT_DIR: ${{ github.workspace }}
           HARNESS_READY_TIMEOUT: 120s
           HARNESS_POLL_EVERY: 500ms
           HARNESS_DOWN_VOLUMES: "1"
           HARNESS_KEEP_STACK_UP: "0"
-
-          # Backend assignment (likely future implementation)
-          # HARNESS_BACKEND: compose
-
           # Compose Harness Advanced Features
           HARNESS_COMPOSE_FILE: docker-compose.yml
+
         run: |
           make ci
 
