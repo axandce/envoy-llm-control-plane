@@ -21,6 +21,7 @@ jobs:
         with:
           go-version-file: tests/go.mod
           cache: true
+          cache-dependency-path: tests/go.sum
 
       - name: Show tool versions
         run: |
@@ -36,11 +37,11 @@ jobs:
       - name: Run CI
         env:
           # Harness interface (backend-agnostic)
-          HARNESS_PROJECT: envoy-llm-cp-it-${{ github.run_id }}
-          HARNESS_ROOT_DIR: ${{ github.workspace }}
           HARNESS_READY_TIMEOUT: 120s
           HARNESS_POLL_EVERY: 500ms
           # Compose Harness Advanced Features
+          DOCKER_PROJECT: envoy-llm-cp-it-${{ github.run_id }}
+          DOCKER_PROJECT_DIR: ${{ github.workspace }}
           HARNESS_COMPOSE_FILE: docker-compose.yml
 
         run: |
