@@ -2,92 +2,54 @@ package harness
 
 import (
 	"context"
-  "encoding/json"
-  "errors"
 	"fmt"
-  "path/filepath"
-  "reflect"
-  "time"
-  "github.com/caarlos0/env/v11"
+	"os"
+	"testing"
+	"time"
+
+	"github.com/axandce/envoy-llm-control-plane/tests/internal/configenv"
+  "github.com/axandce/envoy-llm-control-plane/tests/internal/provider"
 )
 
 type Harness struct {
-  Project		    string        `envDefault:"DefaultProject"`
-  RootDir       Path          `envDefault:"../.."`
-  ComposeFile   string        `envDefault:"docker-compose.yml"`
-  ReadyTimeout 	time.Duration `envDefault:"120s"`
-  PollEvery     time.Duration `envDefault:"500ms"`
-
-  runner        Runner         `env:"-"`
+	cfg Config
+	p   provider.Provider
 }
 
-func LoadHarness() (Harness, error) {
-  return env.ParseAsWithOptions[Harness](harnessOptions())
+func New(p provider.Provider) *Harness {
+	return &Harness{
+		cfg:	configenv.MustLoad[Config](),
+		p:		p,
+	}
 }
 
-func logOnSet(key string, v any, isDefault bool) {
-  fmt.Printf("env %s=%v (isDefault=%v)\n", key, v, isDefault)
-}
+func (h *Harness) Run(ctx context.Context, m *testing.M) int {
+	if h.p == nil {
+		fmt.Fprintln(os.Stderr, "[harness] no provider configured")
+		return 1
+	}
 
-func harnessOptions() env.Options {
-  return env.Options{
-    Prefix:                 "HARNESS_",
-    UseFieldNameByDefault:  true,
-    
-    OnSet:                  logOnSet,
+	readyCtx, cancel := context.WithTimeout(ctx, h.cfg.ReadyTimeout.Duration())
+	defer cancel()
 
-    FuncMap: map[reflect.Type]env.ParserFunc{
-			reflect.TypeFor[Path](): parsePath,
-		},
-  }
-}
+	defer func() {
+		downCtx, cancelDown := context.WithTimeout(context.Background(), 60*time.Second)
+		defer cancelDown()
 
-func (h *Harness) WithRunner(runner Runner) *Harness {
-  h.runner = runner
-  return h
-}
+		if err := h.p.Down(downCtx); err != nil {
+			fmt.Fprintf(os.Stderr, "[harness] down failed (%s): %v\n", h.p.Name(), err)
+		}
+	}()
 
-func (h Harness) ComposePath() Path {
-  if filepath.IsAbs(h.ComposeFile) { 
-    return Path(h.ComposeFile) 
-  }
+	if err := h.p.Up(readyCtx); err != nil {
+		fmt.Fprintf(os.Stderr, "[harness] up failed (%s): %v\n", h.p.Name(), err)
+		return 1
+	}
 
-  return h.RootDir.Join(h.ComposeFile)
-}
+	if err := h.p.WaitReady(readyCtx); err != nil {
+		fmt.Fprintf(os.Stderr, "[harness] wait-ready failed (%s): %v\n", h.p.Name(), err)
+		return 1
+	}
 
-
-func (h Harness) baseComposeArgs() []string {
-	return []string{
-    "compose",
-    "-p", h.Project,
-    "--project-directory", h.RootDir.String(),
-    "-f", h.ComposePath().String(),
-  }
-}
-
-func (h Harness) runDockerCompose(ctx context.Context, args ...string) (string, error) {
-  if h.runner == nil { return "", errors.New("Runner not set")}
-  return h.runner.Run(ctx, "docker", append(h.baseComposeArgs(), args...)...)
-}
-
-func (h Harness) Up(ctx context.Context) (string, error) {
-  return h.runDockerCompose(ctx, "up", "-d")
-}
-
-func (h Harness) Down(ctx context.Context) (string, error) {
-  return h.runDockerCompose(ctx, "down", "-v")
-}
-
-func (h Harness) Logs(ctx context.Context) (string, error) {
-  return h.runDockerCompose(ctx, "logs")
-}
-
-func (h Harness) Show() {
-	b, _ := json.MarshalIndent(h, "", "  ")
-
-	fmt.Println("Loaded config:")
-	fmt.Println(string(b))
-
-  fmt.Println("Getting ComposePath...")
-  fmt.Println(string(h.ComposePath()))
+	return m.Run()
 }

@@ -1,22 +1,18 @@
 package integration
 
 import (
-	"fmt"
+	"context"
 	"os"
 	"testing"
+
+	"github.com/axandce/envoy-llm-control-plane/tests/internal/harness"
+	"github.com/axandce/envoy-llm-control-plane/tests/internal/provider/compose"
 )
 
 func TestMain(m *testing.M) {
-	fmt.Println("[integration] TestMain starting (v0: no harness yet)")
+	ctx := context.Background()
 
-	// TODO: v1+ will:
-	// - load HARNESS_* env vars
-	// - harness.Up()
-	// - harness.WaitReady()
-	// - run tests
-	// - harness.Down() (unless KEEP_STACK_UP)
+	h := harness.New(compose.New())
 
-	code := m.Run()
-	fmt.Println("[integration] TestMain finished")
-	os.Exit(code)
+	os.Exit(h.Run(ctx, m))
 }
